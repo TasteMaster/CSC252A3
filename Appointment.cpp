@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 /*
 Checklist:
 1. Base class Appointment - Elder
@@ -16,9 +18,9 @@ class date
 {
     public:
         date(int d, int m, int y);
-        int date::getDay(int d) const;
-        int date::getMonth(int m) const;
-        int date::getYear(int y) const;
+        int getDay(int d) const;
+        int getMonth(int m) const;
+        int getYear(int y) const;
     private:
         int day;
         int month;
@@ -90,18 +92,61 @@ class day : public appointment
 
 bool day::occurs_on(int day, int month, int year) const
 {
-    
+    if (day == getDate().getDay(day) && month == getDate().getMonth(month) && year == getDate().getYear(year))
+        return true;
+    else
+        return false;
 }
 
 // Monthly derived class
 class monthly : public appointment
 {
-    
+    public:
+        monthly(std::string& desc, const date& app_date) : appointment(desc, app_date) {};
+        bool occurs_on(int day, int year) const;
 };  
+
+bool monthly::occurs_on(int day, int year) const
+{
+    if (day == getDate().getDay(day) && year == getDate().getYear(year))
+        return true;
+    else
+        return false;
+}
 
 // Appointment vector filler in main
 int main()
 {
-    
+    std::vector<appointment*> appointments;
+    std::string desc;
+    int day, month, year;
 
+    // Example appointments
+    date date1(15, 8, 2023);
+    desc = "Doctor's Appointment";
+    appointments.push_back(new day(desc, date1));
+
+    date date2(1, 1, 2023);
+    desc = "Monthly Meeting";
+    appointments.push_back(new monthly(desc, date2));
+
+    // Check for appointments on a specific date
+    int check_day = 15;
+    int check_month = 8;
+    int check_year = 2023;
+
+    std::cout << "Appointments on " << check_day << "/" << check_month << "/" << check_year << ":\n";
+    for (const auto& app : appointments) {
+        if (app->occurs_on(check_day, check_month, check_year)) {
+            std::cout << "- " << app->getDescription() << "\n";
+        }
+    }
+
+    // Clean up
+    for (auto& app : appointments) {
+        delete app;
+    }
+    appointments.clear();
+
+    return 0;
 }
