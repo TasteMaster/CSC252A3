@@ -1,0 +1,98 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <memory> 
+
+using namespace std;
+
+class Date
+{
+public:
+    int month;
+    int day;
+    int year;
+
+    Date(int m, int d, int y) : month(m), day(d), year(y) {}
+};
+
+class Appointment
+{
+protected:
+    string description;
+    Date appointmentDate;
+
+public:
+    Appointment(const string& desc, int m, int d, int y)
+        : description(desc), appointmentDate(m, d, y) {
+    }
+
+    virtual ~Appointment() = default; 
+    virtual bool occurs_on(int month, int day, int year) const = 0;
+
+    string getDescription() const
+    {
+        return description;
+    }
+};
+
+class Day : public Appointment
+{
+public:
+    Day(const string& desc, int m, int d, int y)
+        : Appointment(desc, m, d, y) {
+    }
+
+    bool occurs_on(int month, int day, int year) const override
+    {
+        return (appointmentDate.day == day &&
+            appointmentDate.month == month &&
+            appointmentDate.year == year);
+    }
+};
+
+class Monthly : public Appointment
+{
+public:
+    Monthly(const string& desc, int m, int d, int y)
+        : Appointment(desc, m, d, y) {
+    }
+
+    bool occurs_on(int month, int day, int year) const override
+    {
+        return (appointmentDate.day == day);
+    }
+};
+
+int main()
+{
+    vector<unique_ptr<Appointment>> appointments;
+
+    appointments.push_back(make_unique<Day>("See the dentist", 10, 15, 2025));
+    appointments.push_back(make_unique<Monthly>("Pay rent", 1, 1, 2025)); 
+    appointments.push_back(make_unique<Day>("Team meeting", 10, 20, 2025));
+    appointments.push_back(make_unique<Monthly>("Gym membership renewal", 1, 10, 2025)); 
+    appointments.push_back(make_unique<Day>("Doctor's appointment", 11, 5, 2025));
+
+    int searchMonth, searchDay, searchYear;
+
+    cout << "Enter date to search for appointments (month day year): ";
+    cin >> searchMonth >> searchDay >> searchYear;
+
+    cout << "\nAppointments on " << searchMonth << "/" << searchDay << "/" << searchYear << ":\n";
+    bool foundAppointments = false;
+    for (const auto& app : appointments)
+    {
+        if (app->occurs_on(searchMonth, searchDay, searchYear))
+        {
+            cout << "- " << app->getDescription() << endl;
+            foundAppointments = true;
+        }
+    }
+
+    if (!foundAppointments)
+    {
+        cout << "No appointments found on this date." << endl;
+    }
+
+    return 0;
+}
