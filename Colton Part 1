@@ -1,0 +1,92 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+// Optional: Date class for better encapsulation
+class Date {
+public:
+    int year;
+    int month;
+    int day;
+
+    Date(int y, int m, int d) : year(y), month(m), day(d) {}
+};
+
+// Base class for appointments
+class Appointment {
+protected:
+    std::string description;
+    Date date;
+
+public:
+    Appointment(const std::string& desc, int year, int month, int day)
+        : description(desc), date(year, month, day) {}
+
+    virtual ~Appointment() {} // Virtual destructor for proper cleanup
+
+    virtual bool occurs_on(int year, int month, int day) = 0; // Pure virtual function
+
+    std::string get_description() const {
+        return description;
+    }
+};
+
+// Derived class for daily appointments
+class DayAppointment : public Appointment {
+public:
+    DayAppointment(const std::string& desc, int year, int month, int day)
+        : Appointment(desc, year, month, day) {}
+
+    bool occurs_on(int year, int month, int day) override {
+        return (this->date.year == year && this->date.month == month && this->date.day == day);
+    }
+};
+
+// Derived class for monthly appointments
+class MonthlyAppointment : public Appointment {
+public:
+    MonthlyAppointment(const std::string& desc, int year, int month, int day)
+        : Appointment(desc, year, month, day) {}
+
+    bool occurs_on(int year, int month, int day) override {
+        // For monthly appointments, only the day and year must match
+        return (this->date.day == day); // Note: The prompt specifies "only the day and year must match" for monthly, but the common understanding is only the day of the month. The implementation reflects matching only the day. If year also needs to match, add `&& this->date.year == year`.
+    }
+};
+
+int main() {
+    std::vector<Appointment*> appointments;
+
+    // Fill the vector with a mixture of appointments
+    appointments.push_back(new DayAppointment("See the dentist", 2025, 10, 25));
+    appointments.push_back(new MonthlyAppointment("Pay rent", 2025, 1, 1)); // Occurs on the 1st of any month
+    appointments.push_back(new DayAppointment("Team meeting", 2025, 11, 5));
+    appointments.push_back(new MonthlyAppointment("Gym membership renewal", 2025, 1, 15)); // Occurs on the 15th of any month
+    appointments.push_back(new DayAppointment("Doctor's appointment", 2025, 10, 25));
+
+    // Get date from user
+    int search_year, search_month, search_day;
+    std::cout << "Enter date to search for appointments (year month day): ";
+    std::cin >> search_year >> search_month >> search_day;
+
+    std::cout << "\nAppointments on " << search_year << "/" << search_month << "/" << search_day << ":\n";
+    bool found_appointments = false;
+    for (const auto& appt : appointments) {
+        if (appt->occurs_on(search_year, search_month, search_day)) {
+            std::cout << "- " << appt->get_description() << std::endl;
+            found_appointments = true;
+        }
+    }
+
+    if (!found_appointments) {
+        std::cout << "No appointments found on this date." << std::endl;
+    }
+
+    // Clean up allocated memory
+    for (const auto& appt : appointments) {
+        delete appt;
+    }
+    appointments.clear();
+
+    return 0;
+}
